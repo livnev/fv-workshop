@@ -1,0 +1,255 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN"
+"http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<!-- 2019-03-24 Sun 10:17 -->
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title><code>klab</code> workshop</title>
+<meta name="generator" content="Org mode" />
+<meta name="author" content="Lev Livnev" />
+<meta name="version" content="S5 1.2a2" />
+<meta name='defaultView' content='slideshow' />
+<meta name='controlVis' content='hidden' />
+<!-- style sheet links -->
+<link rel='stylesheet' href='ui/default/outline.css' type='text/css' media='screen' id='outlineStyle' />
+<link rel='stylesheet' href='ui/default/print.css' type='text/css' media='print' id='slidePrint' />
+<link rel='stylesheet' href='ui/default/opera.css' type='text/css' media='projection' id='operaFix' />
+<link rel='stylesheet' href='ui/simple/slides.css' type='text/css' media='screen' id='slideProj' />
+<!-- S5 JS -->
+<script src='ui/default/slides.js' type='text/javascript'></script>
+
+<script type="text/x-mathjax-config">
+    MathJax.Hub.Config({
+        displayAlign: "center",
+        displayIndent: "0em",
+
+        "HTML-CSS": { scale: 100,
+                        linebreaks: { automatic: "false" },
+                        webFont: "TeX"
+                       },
+        SVG: {scale: 100,
+              linebreaks: { automatic: "false" },
+              font: "TeX"},
+        NativeMML: {scale: 100},
+        TeX: { equationNumbers: {autoNumber: "AMS"},
+               MultLineWidth: "85%",
+               TagSide: "right",
+               TagIndent: ".8em"
+             }
+});
+</script>
+<script type="text/javascript"
+        src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.0/MathJax.js?config=TeX-AMS_HTML"></script>
+
+</head>
+<body>
+<div class="layout">
+<div id="controls"><!-- no edit --></div>
+<div id="currentSlide"><!-- no edit --></div>
+<div id="header" class="status">
+&#x20;
+</div>
+
+<div id="footer" class="status">
+<h1>Lev Livnev - <code>klab</code> workshop</h1>
+</div>
+
+</div>
+<div id="content" class="presentation">
+<div id='title-slide' class='slide'>
+<h1><code>klab</code> workshop</h1>
+<h2></h2>
+<h2>Lev Livnev</h2>
+<h3><a href="mailto:lev@dapp.org">lev@dapp.org</a></h3>
+<h4></h4>
+</div>
+
+
+<div id="outline-container-orgce0a755" class="outline-2  slide">
+<h2 id="orgce0a755">getting started</h2>
+<div class="outline-text-2" id="text-orgce0a755">
+<p>
+You can find these slides at <a href="http://stablecoin.technology/fv-workshop/">http://stablecoin.technology/fv-workshop/</a>
+</p>
+
+<p>
+Please join the <code>#klab</code> channel on <a href="https://dapphub.chat">https://dapphub.chat</a>, and make sure to ask questions there if you are blocked.
+</p>
+</div>
+</div>
+
+<div id="outline-container-org054976e" class="outline-2  slide">
+<h2 id="org054976e">installing <code>klab</code></h2>
+<div class="outline-text-2" id="text-org054976e">
+<p>
+Start by installing <code>klab</code>. Today we will be using the latest <code>HEAD</code> so just grab the <code>master</code> branch with:
+</p>
+<div class="org-src-container">
+<pre class="src src-sh">git clone git@github.com:dapphub/klab.git
+</pre>
+</div>
+<p>
+The <code>README.md</code> contains instructions for installing <code>klab</code> and its dependencies (most importantly, the \( \mathbb{K} \) framework), let me know if you need help.
+</p>
+
+<p>
+<code>klab</code> has a (growing) Haskell component which is currently optional, but required if you want to do full gas verification. This component is installed with the <code>nix</code> package manager. You don't have to install it straight away.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgfe3cc3a" class="outline-2  slide">
+<h2 id="orgfe3cc3a">the plan</h2>
+<div class="outline-text-2" id="text-orgfe3cc3a">
+<p>
+The goal is to get everyone working on their own smart contracts with <code>klab</code> as soon as possible.
+</p>
+
+<p>
+The latest stable release is <code>v0.2.3</code> but we'll be using the bleeding edge, soon to be <code>v0.3.0</code>. Unfortunately the readme documents the old version, so there will be a few places where it is wrong (apologies for that). The main difference is that <code>klab</code> no longer uses a client-server architecture, so there's no longer a need to run <code>klab server</code>.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgad90457" class="outline-2  slide">
+<h2 id="orgad90457">the workflow</h2>
+<div class="outline-text-2" id="text-orgad90457">
+<p>
+The basic workflow looks like this:
+</p>
+<div class="org-src-container">
+<pre class="src src-sh"><span style="color: #657b83; font-weight: bold;">cd</span> examples/token
+klab build
+klab prove --dump out/specs/Token_transfer_pass_rough.k
+klab debug $(klab hash out/specs/Token_transfer_pass_rough.k)
+</pre>
+</div>
+
+<p>
+<code>klab build</code> takes the ACT format specs in <code>src/</code> and the source configuration from <code>config.json</code> and creates K specs in =out/.
+</p>
+
+<p>
+<code>klab prove</code> runs the K prover on the generated specs to verify them against your bytecode. The <code>--dump</code> flag enables proof trace logging which you will need when you want to interactively explore the proof.
+</p>
+
+<p>
+<code>klab debug</code> is the interactive interface for exploring the proof logs.
+</p>
+</div>
+</div>
+
+<div id="outline-container-orgff595cc" class="outline-2  slide">
+<h2 id="orgff595cc">the <code>act</code> spec format</h2>
+<div class="outline-text-2" id="text-orgff595cc">
+<p>
+<code>act</code> stands for: 
+</p>
+
+<p>
+Here's an example of an <code>act</code> spec:
+</p>
+</div>
+
+<ul class="org-ul">
+<li><a id="orgaca7b3a"></a><code>examples/token/src/spec.md</code><br />
+<div class="outline-text-3" id="text-orgaca7b3a">
+<div class="org-src-container">
+<pre class="src src-act"><span style="color: #859900; font-weight: bold;">behaviour</span> <span style="color: #268bd2;">transfer</span> of Token
+<span style="color: #859900; font-weight: bold;">interface</span> <span style="color: #268bd2;">transfer</span>(<span style="color: #b58900;">address</span> To, <span style="color: #b58900;">uint</span> Value)
+
+<span style="color: #859900; font-weight: bold;">types</span>
+
+    FromBal <span style="color: #657b83; font-weight: bold;">:</span> <span style="color: #b58900;">uint256</span>
+    ToBal   <span style="color: #657b83; font-weight: bold;">:</span> <span style="color: #b58900;">uint256</span>
+
+<span style="color: #859900; font-weight: bold;">storage</span>
+
+    #Token.balances[CALLER_ID] <span style="color: #657b83; font-weight: bold;">|-&gt;</span> FromBal <span style="color: #657b83; font-weight: bold;">=&gt;</span> FromBal <span style="color: #657b83; font-weight: bold;">-</span> Value
+    #Token.balances[To]        <span style="color: #657b83; font-weight: bold;">|-&gt;</span> ToBal <span style="color: #657b83; font-weight: bold;">=&gt;</span> ToBal <span style="color: #657b83; font-weight: bold;">+</span> Value
+
+<span style="color: #859900; font-weight: bold;">iff</span> in range <span style="color: #b58900;">uint256</span>
+
+    FromBal <span style="color: #657b83; font-weight: bold;">-</span> Value
+    ToBal <span style="color: #657b83; font-weight: bold;">+</span> Value
+
+<span style="color: #859900; font-weight: bold;">iff</span>
+
+    VCallValue <span style="color: #657b83; font-weight: bold;">==</span> 0
+
+<span style="color: #859900; font-weight: bold;">if</span>
+    CALLER_ID =<span style="color: #657b83; font-weight: bold;">/</span>= To
+</pre>
+</div>
+</div>
+</li>
+</ul>
+</div>
+
+<div id="outline-container-org909b358" class="outline-2  slide">
+<h2 id="org909b358">dapp configuration</h2>
+<div class="outline-text-2" id="text-org909b358">
+<p>
+To get started with your own contracts, try mimicking the layout of the projects in <code>klab/examples/</code>:
+</p>
+
+<pre class="example">
+├── config.json
+├── dapp
+│   ├── out
+│   │   ├── Callee.abi
+│   │   ├── Callee.bin
+│   │   ├── Callee.bin-runtime
+│   │   ├── Callee_meta.json
+│   │   ├── easyNest.abi
+│   │   ├── easyNest.bin
+│   │   ├── easyNest.bin-runtime
+│   │   ├── easyNest_meta.json
+│   │   └── easyNest.sol.json
+│   ├── README.md
+│   └── src
+│       └── easyNest.sol
+└── src
+    ├── lemmas.k.md
+    ├── prelude.smt2.md
+    ├── specification.act.md
+    └── storage.k.md
+</pre>
+</div>
+</div>
+
+<div id="outline-container-org34f4f50" class="outline-2  slide">
+<h2 id="org34f4f50"><code>config.json</code></h2>
+<div class="outline-text-2" id="text-org34f4f50">
+<pre class="example">
+{                                                           
+  "src": {
+    "smt_prelude":   "src/prelude.smt2.md",
+    "specification": "src/specification.act.md",
+    "rules": [
+      "src/lemmas.k.md",
+      "src/storage.k.md"
+    ]
+  },
+  "implementations": {
+    "Callee": {
+      "name": "Callee",
+      "solc_output": "dapp/out/easyNest.sol.json"
+    },
+    "easyNest": {
+      "name": "easyNest",
+      "solc_output": "dapp/out/easyNest.sol.json"
+    }
+  },
+  "dapp_root": "dapp",
+  "host": "127.0.0.1:8080"
+}
+</pre>
+</div>
+</div>
+
+
+</div>
+</body>
+</html>

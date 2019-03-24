@@ -1,0 +1,138 @@
+#+TITLE: =klab= workshop
+#+AUTHOR: Lev Livnev
+#+EMAIL: lev@dapp.org
+#+OPTIONS: ':nil *:t -:t ::t <:t H:0 \n:nil ^:t arch:headline
+#+OPTIONS: author:t c:nil creator:comment d:(not "LOGBOOK") date:nil
+#+OPTIONS: e:t email:nil f:t inline:t num:t p:nil pri:nil stat:t
+#+OPTIONS: tags:t tasks:t tex:t timestamp:f toc:nil todo:t |:t
+#+OPTIONS: num:0 H:1
+#+DESCRIPTION:
+#+EXCLUDE_TAGS: noexport
+#+KEYWORDS:
+#+LANGUAGE: en
+#+SELECT_TAGS: export
+
+* getting started
+
+You can find these slides at http://stablecoin.technology/fv-workshop/
+
+Please join the =#klab= channel on https://dapphub.chat, and make sure to ask questions there if you are blocked.
+
+* installing =klab=
+
+Start by installing =klab=. Today we will be using the latest =HEAD= so just grab the =master= branch with:
+#+begin_src sh
+  git clone git@github.com:dapphub/klab.git
+#+end_src
+The =README.md= contains instructions for installing =klab= and its dependencies (most importantly, the \( \mathbb{K} \) framework), let me know if you need help.
+
+=klab= has a (growing) Haskell component which is currently optional, but required if you want to do full gas verification. This component is installed with the =nix= package manager. You don't have to install it straight away.
+
+* the plan
+The goal is to get everyone working on their own smart contracts with =klab= as soon as possible.
+
+The latest stable release is =v0.2.3= but we'll be using the bleeding edge, soon to be =v0.3.0=. Unfortunately the readme documents the old version, so there will be a few places where it is wrong (apologies for that). The main difference is that =klab= no longer uses a client-server architecture, so there's no longer a need to run =klab server=.
+
+* the workflow
+
+The basic workflow looks like this:
+#+begin_src sh
+  cd examples/token
+  klab build
+  klab prove --dump out/specs/Token_transfer_pass_rough.k
+  klab debug $(klab hash out/specs/Token_transfer_pass_rough.k)
+#+end_src
+
+=klab build= takes the ACT format specs in =src/= and the source configuration from =config.json= and creates K specs in =out/.
+
+=klab prove= runs the K prover on the generated specs to verify them against your bytecode. The =--dump= flag enables proof trace logging which you will need when you want to interactively explore the proof.
+
+=klab debug= is the interactive interface for exploring the proof logs.
+
+* the =act= spec format
+
+=act= stands for: 
+
+Here's an example of an =act= spec:
+
+** =examples/token/src/spec.md=
+#+begin_src act
+  behaviour transfer of Token
+  interface transfer(address To, uint Value)
+
+  types
+
+      FromBal : uint256
+      ToBal   : uint256
+
+  storage
+
+      #Token.balances[CALLER_ID] |-> FromBal => FromBal - Value
+      #Token.balances[To]        |-> ToBal => ToBal + Value
+
+  iff in range uint256
+
+      FromBal - Value
+      ToBal + Value
+
+  iff
+
+      VCallValue == 0
+
+  if
+      CALLER_ID =/= To
+#+end_src
+
+* dapp configuration
+
+To get started with your own contracts, try mimicking the layout of the projects in =klab/examples/=:
+
+#+begin_src 
+├── config.json
+├── dapp
+│   ├── out
+│   │   ├── Callee.abi
+│   │   ├── Callee.bin
+│   │   ├── Callee.bin-runtime
+│   │   ├── Callee_meta.json
+│   │   ├── easyNest.abi
+│   │   ├── easyNest.bin
+│   │   ├── easyNest.bin-runtime
+│   │   ├── easyNest_meta.json
+│   │   └── easyNest.sol.json
+│   ├── README.md
+│   └── src
+│       └── easyNest.sol
+└── src
+    ├── lemmas.k.md
+    ├── prelude.smt2.md
+    ├── specification.act.md
+    └── storage.k.md
+#+end_src
+
+* =config.json=
+
+#+begin_src 
+{                                                           
+  "src": {
+    "smt_prelude":   "src/prelude.smt2.md",
+    "specification": "src/specification.act.md",
+    "rules": [
+      "src/lemmas.k.md",
+      "src/storage.k.md"
+    ]
+  },
+  "implementations": {
+    "Callee": {
+      "name": "Callee",
+      "solc_output": "dapp/out/easyNest.sol.json"
+    },
+    "easyNest": {
+      "name": "easyNest",
+      "solc_output": "dapp/out/easyNest.sol.json"
+    }
+  },
+  "dapp_root": "dapp",
+  "host": "127.0.0.1:8080"
+}
+#+end_src
